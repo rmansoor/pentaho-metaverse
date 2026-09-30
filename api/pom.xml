@@ -5,11 +5,11 @@
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-metaverse</artifactId>
-    <version>9.4.0.0-jdk21-1</version>
+    <version>9.4.0.0-jdk21-2</version>
   </parent>
   <groupId>pentaho</groupId>
   <artifactId>pentaho-metaverse-api</artifactId>
-  <version>9.4.0.0-jdk21-1</version>
+  <version>9.4.0.0-jdk21-2</version>
   <name>pentaho-metaverse-api Bundle</name>
   <description>pentaho-metaverse-api OSGi bundle project.</description>
   <properties>
@@ -75,6 +75,12 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-annotations</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>3.20.0</version>
+      <scope>provided</scope>
     </dependency>
     <!-- only for open( Configuration ), whose callers bring their own: lineage opens its TinkerGraph without it
          (BaseSynchronizedGraphFactory), so it is neither needed nor shipped (CVE-2025-46392) -->

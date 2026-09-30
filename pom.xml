@@ -10,7 +10,7 @@
   <groupId>pentaho</groupId>
   <artifactId>pentaho-metaverse</artifactId>
   <!-- local Java 21 build: lineage without Apache Commons Configuration (CVE-2025-46392); kettle pins it -->
-  <version>9.4.0.0-jdk21-1</version>
+  <version>9.4.0.0-jdk21-2</version>
   <packaging>pom</packaging>
   <name>${project.artifactId}</name>
   <description>Parent pom for pentaho-metaverse projects</description>
