@@ -5,13 +5,32 @@
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-metaverse</artifactId>
-    <version>9.4.0.0-SNAPSHOT</version>
+    <version>9.4.0.0-jdk21-1</version>
   </parent>
   <groupId>pentaho</groupId>
   <artifactId>pentaho-metaverse-api</artifactId>
-  <version>9.4.0.0-SNAPSHOT</version>
+  <version>9.4.0.0-jdk21-1</version>
   <name>pentaho-metaverse-api Bundle</name>
   <description>pentaho-metaverse-api OSGi bundle project.</description>
+  <properties>
+    <!-- Java 21: Mockito 1 / PowerMock reach into the JDK -->
+    <maven-surefire-plugin.argLine>--add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.lang.reflect=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.base/java.text=ALL-UNNAMED --add-opens=java.base/java.security=ALL-UNNAMED --add-opens=java.base/java.util.concurrent=ALL-UNNAMED --add-opens=java.base/java.util.regex=ALL-UNNAMED --add-opens=java.base/java.nio=ALL-UNNAMED --add-opens=java.sql/java.sql=ALL-UNNAMED --add-opens=java.naming/javax.naming=ALL-UNNAMED</maven-surefire-plugin.argLine>
+  </properties>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <!-- set static final fields with Whitebox, which Java 12+ does not allow -->
+          <excludes>
+            <exclude>**/KettleAnalyzerUtilTest.java</exclude>
+            <exclude>**/ExternalResourceCacheTest.java</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
   <dependencies>
     <dependency>
       <groupId>pentaho-kettle</groupId>
@@ -57,16 +76,25 @@
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-annotations</artifactId>
     </dependency>
+    <!-- only for open( Configuration ), whose callers bring their own: lineage opens its TinkerGraph without it
+         (BaseSynchronizedGraphFactory), so it is neither needed nor shipped (CVE-2025-46392) -->
     <dependency>
       <groupId>commons-configuration</groupId>
       <artifactId>commons-configuration</artifactId>
       <version>${dependency.commons-configuration.commons-configuration.version}</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>com.tinkerpop.blueprints</groupId>
       <artifactId>blueprints-core</artifactId>
       <version>${dependency.com.tinkerpop.blueprints.version}</version>
       <scope>compile</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>commons-configuration</groupId>
+          <artifactId>commons-configuration</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>net.sf.flexjson</groupId>
@@ -140,14 +168,14 @@
     <dependency>
       <groupId>pentaho-kettle</groupId>
       <artifactId>kettle-core</artifactId>
-      <version>${project.version}</version>
+      <version>${pentaho.snapshot.version}</version>
       <classifier>tests</classifier>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-platform-core</artifactId>
-      <version>${project.version}</version>
+      <version>${pentaho.snapshot.version}</version>
       <classifier>tests</classifier>
       <scope>test</scope>
     </dependency>
