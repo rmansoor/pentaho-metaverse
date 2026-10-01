@@ -22,7 +22,7 @@
 
 package org.pentaho.metaverse.analyzer.kettle.step.transexecutor;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.pentaho.di.core.ProgressNullMonitorListener;
 import org.pentaho.di.core.exception.KettleMissingPluginsException;
 import org.pentaho.di.core.exception.KettleStepException;

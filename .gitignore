@@ -15,3 +15,4 @@ SampleData*.db
 *test*.json
 *test*.graphjson
 testGraph.csv
+target/

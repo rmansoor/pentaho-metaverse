@@ -25,19 +25,27 @@ package org.pentaho.metaverse.api.model;
 
 import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.KeyIndexableGraph;
+import com.tinkerpop.blueprints.impls.tg.TinkerGraph;
 import com.tinkerpop.blueprints.util.wrappers.id.IdGraph;
 import org.apache.commons.configuration.Configuration;
 import org.pentaho.metaverse.api.messages.Messages;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.ResourceBundle;
 
 /**
  * <p> Thin wrapper around {@link com.tinkerpop.blueprints.GraphFactory} that constructs {@link BaseSynchronizedGraph}
  * objects. </p> <p> <strong>NOTE:</strong> The backing graph configured <em>must</em> implement {@link
  * com.tinkerpop.blueprints.KeyIndexableGraph} </p>
+ * <p> A TinkerGraph configured by a Map, file or ResourceBundle is created here, with the settings GraphFactory
+ * reads, so lineage runs without Apache Commons Configuration (not shipped; CVE-2025-46392). Other graph
+ * implementations, and {@link #open(Configuration)}, still go through GraphFactory and need it. </p>
  */
 public class BaseSynchronizedGraphFactory {
   private static final Map<String, String> configMap = new HashMap<>();
@@ -77,8 +85,26 @@ public class BaseSynchronizedGraphFactory {
    * @see com.tinkerpop.blueprints.GraphFactory#open(java.util.Map)
    */
   public static Graph open( final Map<String, String> configuration ) {
-    Graph graph = com.tinkerpop.blueprints.GraphFactory.open( configuration );
+    Graph graph = TinkerGraph.class.getName().equals( configuration.get( GRAPH ) )
+      ? openTinkerGraph( configuration )
+      : com.tinkerpop.blueprints.GraphFactory.open( configuration );
     return wrapGraph( graph );
+  }
+
+  private static final String GRAPH = "blueprints.graph";
+  private static final String TG_DIRECTORY = "blueprints.tg.directory";
+  private static final String TG_FILE_TYPE = "blueprints.tg.file-type";
+
+  /**
+   * What {@code new TinkerGraph( configuration )} does, reading the same settings from a Map
+   */
+  static TinkerGraph openTinkerGraph( final Map<String, String> configuration ) {
+    final String directory = configuration.get( TG_DIRECTORY );
+    if ( directory == null ) {
+      return new TinkerGraph();
+    }
+    final String fileType = configuration.get( TG_FILE_TYPE );
+    return new TinkerGraph( directory, TinkerGraph.FileType.valueOf( fileType == null ? "JAVA" : fileType ) );
   }
 
   /**
@@ -89,8 +115,17 @@ public class BaseSynchronizedGraphFactory {
    * @see com.tinkerpop.blueprints.GraphFactory#open(String)
    */
   public static Graph open( final String configurationFile ) {
-    Graph graph = com.tinkerpop.blueprints.GraphFactory.open( configurationFile );
-    return wrapGraph( graph );
+    final Properties properties = new Properties();
+    try ( InputStream in = new FileInputStream( configurationFile ) ) {
+      properties.load( in );
+    } catch ( IOException e ) {
+      throw new RuntimeException( "Could not load configuration at: " + configurationFile, e );
+    }
+    final Map<String, String> graphProps = new HashMap<>();
+    for ( String key : properties.stringPropertyNames() ) {
+      graphProps.put( key, properties.getProperty( key ) );
+    }
+    return open( graphProps );
   }
 
   /**
